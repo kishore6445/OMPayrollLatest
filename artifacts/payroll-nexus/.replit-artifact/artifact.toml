@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Payroll Nexus"
+version = "1.0.0"
+id = "artifacts/payroll-nexus"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25477
+
+[services.development]
+run = "pnpm --filter @workspace/payroll-nexus run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/payroll-nexus", "run", "build" ]
+publicDir = "artifacts/payroll-nexus/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25477"
+BASE_PATH = "/"

@@ -1,0 +1,10 @@
+BEGIN;
+ALTER TABLE "EMPMAST" ADD COLUMN IF NOT EXISTS "uan_verification_status" varchar(20);
+ALTER TABLE "EMPMAST" ADD COLUMN IF NOT EXISTS "uan_verified_at" timestamp;
+ALTER TABLE "EMPMAST" ADD COLUMN IF NOT EXISTS "uan_verification_provider" varchar(50);
+ALTER TABLE "EMPMAST" ADD COLUMN IF NOT EXISTS "uan_verification_reference" varchar(100);
+ALTER TABLE "EMPMAST" ADD COLUMN IF NOT EXISTS "esic_verification_status" varchar(20);
+ALTER TABLE "EMPMAST" ADD COLUMN IF NOT EXISTS "esic_verified_at" timestamp;
+ALTER TABLE "EMPMAST" ADD COLUMN IF NOT EXISTS "esic_verification_provider" varchar(50);
+ALTER TABLE "EMPMAST" ADD COLUMN IF NOT EXISTS "esic_verification_reference" varchar(100);
+COMMIT;

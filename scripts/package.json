@@ -1,0 +1,19 @@
+{
+  "name": "@workspace/scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed-client-admin": "node ../scripts/seed-client-admin.mjs",
+    "hello": "tsx ./src/hello.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "reset-employee-passwords": "node ../scripts/reset-employee-passwords.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.3"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:"
+  }
+}
