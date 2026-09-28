@@ -1,0 +1,3277 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Payroll Nexus API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: auth
+  - name: tenants
+  - name: packages
+  - name: users
+  - name: roles
+  - name: permissions
+  - name: organizations
+  - name: legalEntities
+  - name: clients
+  - name: sites
+  - name: workers
+  - name: workerAssignments
+  - name: salarySetup
+  - name: attendance
+  - name: payroll
+  - name: bankFile
+  - name: payslips
+  - name: compliance
+  - name: billing
+  - name: reports
+  - name: dashboards
+  - name: auditLogs
+  - name: exportLogs
+  - name: systemJobs
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── AUTH ──────────────────────────────────────────────────────────────
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout current session
+      responses:
+        "200":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  # ── TENANTS ───────────────────────────────────────────────────────────
+  /tenants:
+    get:
+      operationId: listTenants
+      tags: [tenants]
+      summary: List all tenants (Platform Admin only)
+      responses:
+        "200":
+          description: Tenant list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tenant"
+    post:
+      operationId: createTenant
+      tags: [tenants]
+      summary: Create a new tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+
+  /tenants/{tenantId}:
+    get:
+      operationId: getTenant
+      tags: [tenants]
+      parameters:
+        - { name: tenantId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Tenant detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+    patch:
+      operationId: updateTenant
+      tags: [tenants]
+      parameters:
+        - { name: tenantId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+
+  # ── PACKAGES ──────────────────────────────────────────────────────────
+  /packages:
+    get:
+      operationId: listPackages
+      tags: [packages]
+      summary: List all packages
+      responses:
+        "200":
+          description: Package list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Package"
+    post:
+      operationId: createPackage
+      tags: [packages]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackageInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+
+  /tenants/{tenantId}/package:
+    get:
+      operationId: getTenantPackage
+      tags: [packages]
+      parameters:
+        - { name: tenantId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Assigned package
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantPackage"
+    put:
+      operationId: assignTenantPackage
+      tags: [packages]
+      parameters:
+        - { name: tenantId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantPackageInput"
+      responses:
+        "200":
+          description: Assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantPackage"
+
+  # ── USERS ─────────────────────────────────────────────────────────────
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      parameters:
+        - { name: roleId, in: query, schema: { type: string } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags: [users]
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        "204":
+          description: Deleted
+
+  /users/{userId}/reset-password:
+    post:
+      operationId: resetUserPassword
+      tags: [users]
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetInput"
+      responses:
+        "200":
+          description: Password reset
+
+  # ── ROLES ─────────────────────────────────────────────────────────────
+  /roles:
+    get:
+      operationId: listRoles
+      tags: [roles]
+      responses:
+        "200":
+          description: Role list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+    post:
+      operationId: createRole
+      tags: [roles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+
+  /roles/{roleId}:
+    get:
+      operationId: getRole
+      tags: [roles]
+      parameters:
+        - { name: roleId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Role detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+    patch:
+      operationId: updateRole
+      tags: [roles]
+      parameters:
+        - { name: roleId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+    delete:
+      operationId: deleteRole
+      tags: [roles]
+      parameters:
+        - { name: roleId, in: path, required: true, schema: { type: string } }
+      responses:
+        "204":
+          description: Deleted
+
+  /roles/{roleId}/permissions:
+    get:
+      operationId: getRolePermissions
+      tags: [roles]
+      parameters:
+        - { name: roleId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Role permissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Permission"
+    put:
+      operationId: setRolePermissions
+      tags: [roles]
+      parameters:
+        - { name: roleId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionSetInput"
+      responses:
+        "200":
+          description: Permissions updated
+
+  # ── PERMISSIONS ───────────────────────────────────────────────────────
+  /permissions:
+    get:
+      operationId: listPermissions
+      tags: [permissions]
+      responses:
+        "200":
+          description: All defined permissions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Permission"
+
+  # ── ORGANIZATION ──────────────────────────────────────────────────────
+  /organizations:
+    get:
+      operationId: listOrganizations
+      tags: [organizations]
+      responses:
+        "200":
+          description: Organization list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Organization"
+    post:
+      operationId: createOrganization
+      tags: [organizations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+
+  /organizations/{orgId}:
+    get:
+      operationId: getOrganization
+      tags: [organizations]
+      parameters:
+        - { name: orgId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Organization detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+    patch:
+      operationId: updateOrganization
+      tags: [organizations]
+      parameters:
+        - { name: orgId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizationUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
+
+  # ── LEGAL ENTITIES ────────────────────────────────────────────────────
+  /legal-entities:
+    get:
+      operationId: listLegalEntities
+      tags: [legalEntities]
+      responses:
+        "200":
+          description: Legal entity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LegalEntity"
+    post:
+      operationId: createLegalEntity
+      tags: [legalEntities]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LegalEntityInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegalEntity"
+
+  /legal-entities/{entityId}:
+    get:
+      operationId: getLegalEntity
+      tags: [legalEntities]
+      parameters:
+        - { name: entityId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Legal entity detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegalEntity"
+    patch:
+      operationId: updateLegalEntity
+      tags: [legalEntities]
+      parameters:
+        - { name: entityId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LegalEntityUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LegalEntity"
+
+  # ── CLIENTS ───────────────────────────────────────────────────────────
+  /clients:
+    get:
+      operationId: listClients
+      tags: [clients]
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Client list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+    post:
+      operationId: createClient
+      tags: [clients]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+
+  /clients/{clientId}:
+    get:
+      operationId: getClient
+      tags: [clients]
+      parameters:
+        - { name: clientId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Client detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+    patch:
+      operationId: updateClient
+      tags: [clients]
+      parameters:
+        - { name: clientId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+
+  # ── SITES ─────────────────────────────────────────────────────────────
+  /sites:
+    get:
+      operationId: listSites
+      tags: [sites]
+      parameters:
+        - { name: clientId, in: query, schema: { type: string } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Site list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Site"
+    post:
+      operationId: createSite
+      tags: [sites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+
+  /sites/{siteId}:
+    get:
+      operationId: getSite
+      tags: [sites]
+      parameters:
+        - { name: siteId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Site detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+    patch:
+      operationId: updateSite
+      tags: [sites]
+      parameters:
+        - { name: siteId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+
+  # ── WORKERS ───────────────────────────────────────────────────────────
+  /workers:
+    get:
+      operationId: listWorkers
+      tags: [workers]
+      parameters:
+        - { name: clientId, in: query, schema: { type: string } }
+        - { name: siteId, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: readiness, in: query, schema: { type: string, enum: [missing-bank, missing-statutory, missing-salary, missing-assignment] } }
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: pageSize, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: Paginated worker list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerListPage"
+    post:
+      operationId: createWorker
+      tags: [workers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Worker"
+
+  /workers/bulk-upload:
+    post:
+      operationId: bulkUploadWorkers
+      tags: [workers]
+      summary: Bulk import workers from Excel/CSV
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkUploadInput"
+      responses:
+        "200":
+          description: Upload result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkUploadResult"
+
+  /workers/missing-data:
+    get:
+      operationId: listWorkersWithMissingData
+      tags: [workers]
+      summary: Active workers missing bank details, statutory profile, or salary structure
+      parameters:
+        - { name: type, in: query, schema: { type: string, enum: [bank, statutory, salary] } }
+        - { name: clientId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Workers with missing data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkerMissingData"
+
+  /workers/{workerId}:
+    get:
+      operationId: getWorker
+      tags: [workers]
+      parameters:
+        - { name: workerId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Worker profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Worker"
+    patch:
+      operationId: updateWorker
+      tags: [workers]
+      parameters:
+        - { name: workerId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkerUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Worker"
+    delete:
+      operationId: deleteWorker
+      tags: [workers]
+      parameters:
+        - { name: workerId, in: path, required: true, schema: { type: string } }
+      responses:
+        "204":
+          description: Deleted
+
+  /workers/{workerId}/bank-details:
+    get:
+      operationId: getWorkerBankDetails
+      tags: [workers]
+      parameters:
+        - { name: workerId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Bank details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankDetails"
+    put:
+      operationId: upsertWorkerBankDetails
+      tags: [workers]
+      parameters:
+        - { name: workerId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankDetailsInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankDetails"
+
+  /workers/{workerId}/statutory-profile:
+    get:
+      operationId: getWorkerStatutoryProfile
+      tags: [workers]
+      parameters:
+        - { name: workerId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Statutory profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatutoryProfile"
+    put:
+      operationId: upsertWorkerStatutoryProfile
+      tags: [workers]
+      parameters:
+        - { name: workerId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatutoryProfileInput"
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatutoryProfile"
+
+  # ── WORKER ASSIGNMENTS ────────────────────────────────────────────────
+  /assignments:
+    get:
+      operationId: listAssignments
+      tags: [workerAssignments]
+      parameters:
+        - { name: workerId, in: query, schema: { type: string } }
+        - { name: clientId, in: query, schema: { type: string } }
+        - { name: siteId, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Assignment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
+    post:
+      operationId: createAssignment
+      tags: [workerAssignments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignmentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assignment"
+
+  /assignments/{assignmentId}:
+    get:
+      operationId: getAssignment
+      tags: [workerAssignments]
+      parameters:
+        - { name: assignmentId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Assignment detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assignment"
+    patch:
+      operationId: updateAssignment
+      tags: [workerAssignments]
+      parameters:
+        - { name: assignmentId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignmentUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assignment"
+
+  # ── SALARY SETUP ──────────────────────────────────────────────────────
+  /salary-structures:
+    get:
+      operationId: listSalaryStructures
+      tags: [salarySetup]
+      parameters:
+        - { name: workerId, in: query, schema: { type: string } }
+        - { name: clientId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Salary structure list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SalaryStructure"
+    post:
+      operationId: createSalaryStructure
+      tags: [salarySetup]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SalaryStructureInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalaryStructure"
+
+  /salary-structures/{structureId}:
+    get:
+      operationId: getSalaryStructure
+      tags: [salarySetup]
+      parameters:
+        - { name: structureId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Salary structure detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalaryStructure"
+    patch:
+      operationId: updateSalaryStructure
+      tags: [salarySetup]
+      parameters:
+        - { name: structureId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SalaryStructureUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalaryStructure"
+
+  # ── ATTENDANCE ────────────────────────────────────────────────────────
+  /attendance/upload:
+    post:
+      operationId: uploadAttendance
+      tags: [attendance]
+      summary: Upload attendance sheet (Excel/CSV data)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceUploadInput"
+      responses:
+        "200":
+          description: Upload result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceUploadResult"
+
+  /attendance:
+    get:
+      operationId: listAttendanceRecords
+      tags: [attendance]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: clientId, in: query, schema: { type: string } }
+        - { name: siteId, in: query, schema: { type: string } }
+        - { name: workerId, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Attendance records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AttendanceRecord"
+
+  /attendance/{recordId}:
+    patch:
+      operationId: updateAttendanceRecord
+      tags: [attendance]
+      parameters:
+        - { name: recordId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceRecordUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceRecord"
+
+  /attendance/exceptions:
+    get:
+      operationId: listAttendanceExceptions
+      tags: [attendance]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: clientId, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Attendance exceptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AttendanceException"
+
+  /attendance/approve:
+    post:
+      operationId: approveAttendance
+      tags: [attendance]
+      summary: Approve and lock attendance for a month/batch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceApprovalInput"
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceLock"
+
+  /attendance/locks:
+    get:
+      operationId: listAttendanceLocks
+      tags: [attendance]
+      parameters:
+        - { name: month, in: query, schema: { type: string } }
+        - { name: clientId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Attendance locks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AttendanceLock"
+
+  # ── PAYROLL ───────────────────────────────────────────────────────────
+  /payroll/batches:
+    get:
+      operationId: listPayrollBatches
+      tags: [payroll]
+      parameters:
+        - { name: month, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: clientId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Payroll batch list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PayrollBatch"
+    post:
+      operationId: createPayrollBatch
+      tags: [payroll]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayrollBatchInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollBatch"
+
+  /payroll/batches/{batchId}:
+    get:
+      operationId: getPayrollBatch
+      tags: [payroll]
+      parameters:
+        - { name: batchId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Batch detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollBatch"
+
+  /payroll/batches/{batchId}/calculate:
+    post:
+      operationId: runPayrollCalculation
+      tags: [payroll]
+      parameters:
+        - { name: batchId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Calculation started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollBatch"
+
+  /payroll/records:
+    get:
+      operationId: listPayrollRecords
+      tags: [payroll]
+      parameters:
+        - { name: batchId, in: query, required: true, schema: { type: string } }
+        - { name: workerId, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Payroll records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PayrollRecord"
+
+  /payroll/exceptions:
+    get:
+      operationId: listPayrollExceptions
+      tags: [payroll]
+      parameters:
+        - { name: batchId, in: query, required: true, schema: { type: string } }
+        - { name: type, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Payroll exceptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PayrollException"
+
+  /payroll/exceptions/{exceptionId}/resolve:
+    post:
+      operationId: resolvePayrollException
+      tags: [payroll]
+      parameters:
+        - { name: exceptionId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayrollExceptionResolution"
+      responses:
+        "200":
+          description: Exception resolved
+
+  /payroll/batches/{batchId}/approve:
+    post:
+      operationId: approvePayroll
+      tags: [payroll]
+      parameters:
+        - { name: batchId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayrollApprovalInput"
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollBatch"
+
+  /payroll/batches/{batchId}/reopen:
+    post:
+      operationId: reopenPayroll
+      tags: [payroll]
+      parameters:
+        - { name: batchId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayrollReopenInput"
+      responses:
+        "200":
+          description: Reopened
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollBatch"
+
+  /payroll/records/{recordId}/trace:
+    get:
+      operationId: getPayrollCalculationTrace
+      tags: [payroll]
+      parameters:
+        - { name: recordId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Calculation trace/breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollTrace"
+
+  # ── BANK FILE ─────────────────────────────────────────────────────────
+  /bank-files:
+    get:
+      operationId: listBankFiles
+      tags: [bankFile]
+      parameters:
+        - { name: batchId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Bank files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankFile"
+    post:
+      operationId: generateBankFile
+      tags: [bankFile]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankFileInput"
+      responses:
+        "201":
+          description: Bank file generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankFile"
+
+  # ── PAYSLIPS ──────────────────────────────────────────────────────────
+  /payslips:
+    get:
+      operationId: listPayslips
+      tags: [payslips]
+      parameters:
+        - { name: batchId, in: query, schema: { type: string } }
+        - { name: workerId, in: query, schema: { type: string } }
+        - { name: month, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Payslip list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payslip"
+    post:
+      operationId: generatePayslips
+      tags: [payslips]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayslipGenerationInput"
+      responses:
+        "200":
+          description: Generation started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayslipGenerationResult"
+
+  /payslips/{payslipId}:
+    get:
+      operationId: getPayslip
+      tags: [payslips]
+      parameters:
+        - { name: payslipId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Payslip detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payslip"
+
+  # ── COMPLIANCE RULES ──────────────────────────────────────────────────
+  /compliance/rules:
+    get:
+      operationId: listComplianceRules
+      tags: [compliance]
+      parameters:
+        - { name: state, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { type: string, enum: [pt, lwf, min_wage] } }
+      responses:
+        "200":
+          description: Compliance rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceRule"
+    post:
+      operationId: createComplianceRule
+      tags: [compliance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplianceRuleInput"
+      responses:
+        "201":
+          description: Created compliance rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceRule"
+
+  # ── COMPLIANCE REPORTS ────────────────────────────────────────────────
+  /compliance/pf-report:
+    get:
+      operationId: getPFReport
+      tags: [compliance]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: entityId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: PF report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceReport"
+
+  /compliance/esi-report:
+    get:
+      operationId: getESIReport
+      tags: [compliance]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: entityId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: ESI report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceReport"
+
+  /compliance/pt-report:
+    get:
+      operationId: getPTReport
+      tags: [compliance]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: PT report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceReport"
+
+  /compliance/lwf-report:
+    get:
+      operationId: getLWFReport
+      tags: [compliance]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: LWF report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceReport"
+
+  /compliance/min-wage-exceptions:
+    get:
+      operationId: getMinWageExceptions
+      tags: [compliance]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: state, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Minimum wage exception report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MinWageException"
+
+  /compliance/missing-statutory:
+    get:
+      operationId: getMissingStatutoryData
+      tags: [compliance]
+      responses:
+        "200":
+          description: Missing statutory data report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MissingStatutoryRecord"
+
+  # ── BILLING ───────────────────────────────────────────────────────────
+  /billing-rules:
+    get:
+      operationId: listBillingRules
+      tags: [billing]
+      parameters:
+        - { name: clientId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Billing rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BillingRule"
+    post:
+      operationId: createBillingRule
+      tags: [billing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingRuleInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingRule"
+
+  /billing-rules/{ruleId}:
+    patch:
+      operationId: updateBillingRule
+      tags: [billing]
+      parameters:
+        - { name: ruleId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingRuleUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingRule"
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [billing]
+      parameters:
+        - { name: clientId, in: query, schema: { type: string } }
+        - { name: month, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Invoice list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+    post:
+      operationId: generateInvoice
+      tags: [billing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "201":
+          description: Invoice generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{invoiceId}:
+    get:
+      operationId: getInvoice
+      tags: [billing]
+      parameters:
+        - { name: invoiceId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Invoice detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{invoiceId}/approve:
+    post:
+      operationId: approveInvoice
+      tags: [billing]
+      parameters:
+        - { name: invoiceId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Invoice approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{invoiceId}/paid:
+    post:
+      operationId: markInvoicePaid
+      tags: [billing]
+      parameters:
+        - { name: invoiceId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Invoice marked as paid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{invoiceId}/annexure:
+    get:
+      operationId: getInvoiceAnnexure
+      tags: [billing]
+      parameters:
+        - { name: invoiceId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Worker-wise invoice annexure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceAnnexure"
+
+  /invoices/{invoiceId}/draft-preview:
+    get:
+      operationId: getInvoiceDraftPreview
+      tags: [billing]
+      summary: Internal pre-approval preview of a draft invoice's line items (requires clients:write; not a client export)
+      parameters:
+        - { name: invoiceId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Internal draft preview with line items and reconciliation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceDraftPreview"
+
+  # ── REPORTS ───────────────────────────────────────────────────────────
+  /reports:
+    get:
+      operationId: listReports
+      tags: [reports]
+      summary: Report catalog
+      responses:
+        "200":
+          description: Report list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportMeta"
+
+  /reports/payroll-summary:
+    get:
+      operationId: getPayrollSummaryReport
+      tags: [reports]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: clientId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Payroll summary report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollSummaryReport"
+
+  /reports/worker-payroll:
+    get:
+      operationId: getWorkerPayrollReport
+      tags: [reports]
+      parameters:
+        - { name: month, in: query, required: true, schema: { type: string } }
+        - { name: clientId, in: query, schema: { type: string } }
+        - { name: siteId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Worker-wise payroll report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkerPayrollRow"
+
+  /downloads:
+    get:
+      operationId: listDownloads
+      tags: [reports]
+      summary: Download center - list all generated exports
+      responses:
+        "200":
+          description: Downloads list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DownloadItem"
+
+  # ── DASHBOARDS ────────────────────────────────────────────────────────
+  /dashboards/executive:
+    get:
+      operationId: getExecutiveDashboard
+      tags: [dashboards]
+      responses:
+        "200":
+          description: Executive dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutiveDashboard"
+
+  /dashboards/payroll:
+    get:
+      operationId: getPayrollDashboard
+      tags: [dashboards]
+      parameters:
+        - { name: month, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Payroll dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayrollDashboard"
+
+  /dashboards/compliance:
+    get:
+      operationId: getComplianceDashboard
+      tags: [dashboards]
+      responses:
+        "200":
+          description: Compliance dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceDashboard"
+
+  /dashboards/finance:
+    get:
+      operationId: getFinanceDashboard
+      tags: [dashboards]
+      parameters:
+        - { name: month, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Finance dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceDashboard"
+
+  # ── AUDIT LOGS ────────────────────────────────────────────────────────
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [auditLogs]
+      parameters:
+        - { name: module, in: query, schema: { type: string } }
+        - { name: action, in: query, schema: { type: string } }
+        - { name: userId, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string } }
+        - { name: to, in: query, schema: { type: string } }
+        - { name: entityId, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditLog"
+
+  /export-logs:
+    get:
+      operationId: listExportLogs
+      tags: [exportLogs]
+      parameters:
+        - { name: module, in: query, schema: { type: string } }
+        - { name: userId, in: query, schema: { type: string } }
+        - { name: from, in: query, schema: { type: string } }
+        - { name: to, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Export log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExportLog"
+
+  # ── SYSTEM JOBS ───────────────────────────────────────────────────────
+  /system-jobs:
+    get:
+      operationId: listSystemJobs
+      tags: [systemJobs]
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: System jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SystemJob"
+
+  /system-jobs/{jobId}:
+    get:
+      operationId: getSystemJob
+      tags: [systemJobs]
+      parameters:
+        - { name: jobId, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Job detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemJob"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        clientDb:
+          type: string
+          enum: [ok, error]
+      required: [status, clientDb]
+
+    # ── AUTH ──────────────────────────────────────────────────────────
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string }
+        password: { type: string }
+        tenantSlug: { type: string }
+
+    AuthResponse:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfile"
+        token: { type: string }
+
+    UserProfile:
+      type: object
+      required: [id, email, name, role, tenantId, permissions]
+      properties:
+        id: { type: string }
+        email: { type: string }
+        name: { type: string }
+        role: { type: string }
+        roleId: { type: string }
+        tenantId: { type: string }
+        tenantName: { type: string }
+        permissions:
+          type: array
+          items: { type: string }
+        avatarUrl: { type: ["string", "null"] }
+
+    PasswordResetInput:
+      type: object
+      required: [newPassword]
+      properties:
+        newPassword: { type: string }
+
+    # ── TENANT ────────────────────────────────────────────────────────
+    Tenant:
+      type: object
+      required: [id, name, slug, status, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        status: { type: string, enum: [active, suspended, trial] }
+        industry: { type: ["string", "null"] }
+        contactEmail: { type: ["string", "null"] }
+        contactPhone: { type: ["string", "null"] }
+        packageId: { type: ["string", "null"] }
+        packageName: { type: ["string", "null"] }
+        workerCount: { type: ["integer", "null"] }
+        createdAt: { type: string }
+
+    TenantInput:
+      type: object
+      required: [name, slug, contactEmail]
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        industry: { type: string }
+        contactEmail: { type: string }
+        contactPhone: { type: string }
+        adminName: { type: string }
+        adminPassword: { type: string }
+
+    TenantUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        industry: { type: string }
+        contactEmail: { type: string }
+        contactPhone: { type: string }
+        status: { type: string }
+
+    # ── PACKAGE ───────────────────────────────────────────────────────
+    Package:
+      type: object
+      required: [id, name, maxWorkers, features]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        maxWorkers: { type: integer }
+        features:
+          type: array
+          items: { type: string }
+        monthlyPrice: { type: ["number", "null"] }
+
+    PackageInput:
+      type: object
+      required: [name, maxWorkers, features]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        maxWorkers: { type: integer }
+        features:
+          type: array
+          items: { type: string }
+        monthlyPrice: { type: number }
+
+    TenantPackage:
+      type: object
+      required: [tenantId, packageId, assignedAt]
+      properties:
+        tenantId: { type: string }
+        packageId: { type: string }
+        packageName: { type: string }
+        assignedAt: { type: string }
+        expiresAt: { type: ["string", "null"] }
+
+    TenantPackageInput:
+      type: object
+      required: [packageId]
+      properties:
+        packageId: { type: string }
+        expiresAt: { type: string }
+
+    # ── USER ──────────────────────────────────────────────────────────
+    User:
+      type: object
+      required: [id, email, name, roleId, roleName, status, createdAt]
+      properties:
+        id: { type: string }
+        email: { type: string }
+        name: { type: string }
+        roleId: { type: string }
+        roleName: { type: string }
+        status: { type: string, enum: [active, inactive] }
+        phone: { type: ["string", "null"] }
+        lastLoginAt: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    UserInput:
+      type: object
+      required: [email, name, roleId, password]
+      properties:
+        email: { type: string }
+        name: { type: string }
+        roleId: { type: string }
+        password: { type: string }
+        phone: { type: string }
+
+    UserUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        roleId: { type: string }
+        status: { type: string }
+        phone: { type: string }
+
+    # ── ROLE / PERMISSION ────────────────────────────────────────────
+    Role:
+      type: object
+      required: [id, name, isSystem, userCount]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        isSystem: { type: boolean }
+        userCount: { type: integer }
+        permissionCount: { type: integer }
+
+    RoleInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        description: { type: string }
+
+    RoleUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+
+    Permission:
+      type: object
+      required: [id, module, action, label]
+      properties:
+        id: { type: string }
+        module: { type: string }
+        action: { type: string }
+        label: { type: string }
+        description: { type: ["string", "null"] }
+
+    PermissionSetInput:
+      type: object
+      required: [permissionIds]
+      properties:
+        permissionIds:
+          type: array
+          items: { type: string }
+
+    # ── ORGANIZATION ──────────────────────────────────────────────────
+    Organization:
+      type: object
+      required: [id, name, type, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        address: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        pincode: { type: ["string", "null"] }
+        pan: { type: ["string", "null"] }
+        cin: { type: ["string", "null"] }
+        createdAt: { type: string }
+        legalEntityCount: { type: integer }
+
+    OrganizationInput:
+      type: object
+      required: [name, type]
+      properties:
+        name: { type: string }
+        type: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        pincode: { type: string }
+        pan: { type: string }
+        cin: { type: string }
+
+    OrganizationUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        pincode: { type: string }
+        pan: { type: string }
+        cin: { type: string }
+
+    # ── LEGAL ENTITY ──────────────────────────────────────────────────
+    LegalEntity:
+      type: object
+      required: [id, name, orgId, state, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        orgId: { type: string }
+        orgName: { type: string }
+        state: { type: string }
+        pfNumber: { type: ["string", "null"] }
+        esiNumber: { type: ["string", "null"] }
+        ptNumber: { type: ["string", "null"] }
+        lwfNumber: { type: ["string", "null"] }
+        tan: { type: ["string", "null"] }
+        gstin: { type: ["string", "null"] }
+        pfWageBasis:
+          type: string
+          enum: [prorated_earned, full_monthly]
+          description: >-
+            Basis for the PF wage. `prorated_earned` prorates the PF wage for
+            unpaid-leave (LWP) days; `full_monthly` uses the full monthly
+            ceiling regardless of LWP.
+        createdAt: { type: string }
+
+    LegalEntityInput:
+      type: object
+      required: [name, orgId, state]
+      properties:
+        name: { type: string }
+        orgId: { type: string }
+        state: { type: string }
+        pfNumber: { type: string }
+        esiNumber: { type: string }
+        ptNumber: { type: string }
+        lwfNumber: { type: string }
+        tan: { type: string }
+        gstin: { type: string }
+        pfWageBasis:
+          type: string
+          enum: [prorated_earned, full_monthly]
+
+    LegalEntityUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        state: { type: string }
+        pfNumber: { type: string }
+        esiNumber: { type: string }
+        ptNumber: { type: string }
+        lwfNumber: { type: string }
+        tan: { type: string }
+        gstin: { type: string }
+        pfWageBasis:
+          type: string
+          enum: [prorated_earned, full_monthly]
+
+    # ── CLIENT ────────────────────────────────────────────────────────
+    Client:
+      type: object
+      required: [id, name, status, siteCount, workerCount, createdAt]
+      properties:
+        id: { type: string }
+        organizationId: { type: ["string", "null"] }
+        organizationName: { type: ["string", "null"] }
+        name: { type: string }
+        code: { type: ["string", "null"] }
+        industry: { type: ["string", "null"] }
+        contactName: { type: ["string", "null"] }
+        contactEmail: { type: ["string", "null"] }
+        contactPhone: { type: ["string", "null"] }
+        gstin: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        status: { type: string, enum: [active, inactive] }
+        siteCount: { type: integer }
+        workerCount: { type: integer }
+        createdAt: { type: string }
+
+    ClientInput:
+      type: object
+      required: [name, organizationId]
+      properties:
+        organizationId: { type: string }
+        name: { type: string }
+        code: { type: string }
+        industry: { type: string }
+        contactName: { type: string }
+        contactEmail: { type: string }
+        contactPhone: { type: string }
+        gstin: { type: string }
+        address: { type: string }
+
+    ClientUpdate:
+      type: object
+      properties:
+        organizationId: { type: string }
+        name: { type: string }
+        industry: { type: string }
+        contactName: { type: string }
+        contactEmail: { type: string }
+        contactPhone: { type: string }
+        gstin: { type: string }
+        address: { type: string }
+        status: { type: string }
+
+    # ── SITE ──────────────────────────────────────────────────────────
+    Site:
+      type: object
+      required: [id, clientId, clientName, name, state, status, workerCount, createdAt]
+      properties:
+        id: { type: string }
+        clientId: { type: string }
+        clientName: { type: string }
+        name: { type: string }
+        code: { type: ["string", "null"] }
+        address: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        state: { type: string }
+        pincode: { type: ["string", "null"] }
+        zone: { type: ["string", "null"], description: "Minimum-wage zone tag (e.g. Zone 1 / Zone 2 / Zone 3) used to resolve zone-based minimum-wage thresholds" }
+        zoneTagMissing: { type: boolean, description: "True when the site is active, its state's minimum-wage rule defines zone-based rates, and the site has no zone tag — payroll will silently use the state default (Zone 1) rate" }
+        status: { type: string, enum: [active, inactive] }
+        workerCount: { type: integer }
+        createdAt: { type: string }
+
+    SiteInput:
+      type: object
+      required: [clientId, name, state]
+      properties:
+        clientId: { type: string }
+        name: { type: string }
+        code: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        pincode: { type: string }
+        zone: { type: string }
+
+    SiteUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        address: { type: string }
+        city: { type: string }
+        state: { type: string }
+        pincode: { type: string }
+        zone: { type: string }
+        status: { type: string }
+
+    # ── WORKER ────────────────────────────────────────────────────────
+    Worker:
+      type: object
+      required: [id, employeeCode, name, status, category, createdAt]
+      properties:
+        id: { type: string }
+        employeeCode: { type: string }
+        name: { type: string }
+        gender: { type: ["string", "null"] }
+        dateOfBirth: { type: ["string", "null"] }
+        dateOfJoining: { type: string }
+        designation: { type: ["string", "null"] }
+        category: { type: string }
+        clientId: { type: ["string", "null"] }
+        clientName: { type: ["string", "null"] }
+        siteId: { type: ["string", "null"] }
+        siteName: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        status: { type: string, enum: [active, inactive, terminated] }
+        hasBankDetails: { type: boolean }
+        hasStatutoryProfile: { type: boolean }
+        hasSalarySetup: { type: boolean }
+        phone: { type: ["string", "null"] }
+        aadhar: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    WorkerInput:
+      type: object
+      required: [employeeCode, name, dateOfJoining, category]
+      properties:
+        employeeCode: { type: string }
+        name: { type: string }
+        gender: { type: string }
+        dateOfBirth: { type: string }
+        dateOfJoining: { type: string }
+        designation: { type: string }
+        category: { type: string }
+        phone: { type: string }
+        aadhar: { type: string }
+        clientId: { type: string }
+        siteId: { type: string }
+        state: { type: string }
+
+    WorkerUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        gender: { type: string }
+        dateOfBirth: { type: string }
+        designation: { type: string }
+        phone: { type: string }
+        status: { type: string }
+        state: { type: string }
+
+    WorkerMissingData:
+      type: object
+      required: [id, employeeCode, name, status, category, dateOfJoining]
+      properties:
+        id: { type: string }
+        employeeCode: { type: string }
+        name: { type: string }
+        clientId: { type: ["string", "null"] }
+        clientName: { type: ["string", "null"] }
+        siteId: { type: ["string", "null"] }
+        state: { type: ["string", "null"] }
+        status: { type: string }
+        designation: { type: ["string", "null"] }
+        category: { type: string }
+        dateOfJoining: { type: string }
+        hasBankDetails: { type: boolean }
+        hasStatutoryProfile: { type: boolean }
+
+    WorkerListPage:
+      type: object
+      required: [data, total, page, pageSize, totalPages]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Worker"
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+
+    BulkUploadInput:
+      type: object
+      required: [workers]
+      properties:
+        workers:
+          type: array
+          items:
+            type: object
+            additionalProperties: { type: string }
+
+    BulkUploadResult:
+      type: object
+      required: [total, inserted, duplicates, failed, errors]
+      properties:
+        total: { type: integer }
+        inserted: { type: integer }
+        duplicates: { type: integer }
+        failed: { type: integer }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              row: { type: integer }
+              employeeCode: { type: string }
+              field: { type: string }
+              message: { type: string }
+
+    BankDetails:
+      type: object
+      required: [workerId, accountNumber, bankName, ifscCode]
+      properties:
+        workerId: { type: string }
+        accountNumber: { type: string }
+        bankName: { type: string }
+        ifscCode: { type: string }
+        accountType: { type: ["string", "null"] }
+        holderName: { type: ["string", "null"] }
+        verified: { type: boolean }
+        updatedAt: { type: string }
+
+    BankDetailsInput:
+      type: object
+      required: [accountNumber, bankName, ifscCode]
+      properties:
+        accountNumber: { type: string }
+        bankName: { type: string }
+        ifscCode: { type: string }
+        accountType: { type: string }
+        holderName: { type: string }
+
+    StatutoryProfile:
+      type: object
+      required: [workerId]
+      properties:
+        workerId: { type: string }
+        pfUan: { type: ["string", "null"] }
+        pfNumber: { type: ["string", "null"] }
+        esiNumber: { type: ["string", "null"] }
+        pfEnrolled: { type: boolean }
+        esiEnrolled: { type: boolean }
+        ptApplicable: { type: boolean }
+        lwfApplicable: { type: boolean }
+        updatedAt: { type: ["string", "null"] }
+
+    StatutoryProfileInput:
+      type: object
+      properties:
+        pfUan: { type: string }
+        pfNumber: { type: string }
+        esiNumber: { type: string }
+        pfEnrolled: { type: boolean }
+        esiEnrolled: { type: boolean }
+        ptApplicable: { type: boolean }
+        lwfApplicable: { type: boolean }
+
+    # ── ASSIGNMENT ────────────────────────────────────────────────────
+    Assignment:
+      type: object
+      required: [id, workerId, workerName, clientId, clientName, siteId, siteName, startDate, status]
+      properties:
+        id: { type: string }
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        clientId: { type: string }
+        clientName: { type: string }
+        siteId: { type: string }
+        siteName: { type: string }
+        legalEntityId: { type: ["string", "null"] }
+        startDate: { type: string }
+        endDate: { type: ["string", "null"] }
+        status: { type: string, enum: [active, ended] }
+        designation: { type: ["string", "null"] }
+
+    AssignmentInput:
+      type: object
+      required: [workerId, clientId, siteId, startDate]
+      properties:
+        workerId: { type: string }
+        clientId: { type: string }
+        siteId: { type: string }
+        legalEntityId: { type: string }
+        startDate: { type: string }
+        designation: { type: string }
+
+    AssignmentUpdate:
+      type: object
+      properties:
+        endDate: { type: string }
+        status: { type: string }
+        designation: { type: string }
+
+    # ── SALARY STRUCTURE ──────────────────────────────────────────────
+    SalaryStructure:
+      type: object
+      required: [id, workerId, workerName, effectiveFrom, grossMonthly, components]
+      properties:
+        id: { type: string }
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        clientId: { type: ["string", "null"] }
+        clientName: { type: ["string", "null"] }
+        effectiveFrom: { type: string }
+        effectiveTo: { type: ["string", "null"] }
+        wageType: { type: string, enum: [monthly, daily] }
+        grossMonthly: { type: number }
+        dailyWage: { type: ["number", "null"] }
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/SalaryComponent"
+
+    SalaryComponent:
+      type: object
+      required: [head, amount]
+      properties:
+        head: { type: string }
+        type: { type: string, enum: [earning, deduction, employer] }
+        amount: { type: number }
+        isPercentage: { type: boolean }
+        baseHead: { type: ["string", "null"] }
+
+    SalaryStructureInput:
+      type: object
+      required: [workerId, effectiveFrom, wageType, grossMonthly, components]
+      properties:
+        workerId: { type: string }
+        effectiveFrom: { type: string }
+        wageType: { type: string }
+        grossMonthly: { type: number }
+        dailyWage: { type: number }
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/SalaryComponent"
+
+    SalaryStructureUpdate:
+      type: object
+      properties:
+        effectiveFrom: { type: string }
+        grossMonthly: { type: number }
+        dailyWage: { type: number }
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/SalaryComponent"
+
+    # ── ATTENDANCE ────────────────────────────────────────────────────
+    AttendanceUploadInput:
+      type: object
+      required: [month, clientId, records]
+      properties:
+        month: { type: string }
+        clientId: { type: string }
+        siteId: { type: string }
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              employeeCode: { type: string }
+              presentDays: { type: number }
+              otHours: { type: number }
+              lwpDays: { type: number }
+
+    AttendanceUploadResult:
+      type: object
+      required: [total, accepted, rejected, uploadId]
+      properties:
+        total: { type: integer }
+        accepted: { type: integer }
+        rejected: { type: integer }
+        uploadId: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              employeeCode: { type: string }
+              error: { type: string }
+
+    AttendanceRecord:
+      type: object
+      required: [id, workerId, workerName, month, presentDays, status]
+      properties:
+        id: { type: string }
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        clientId: { type: string }
+        clientName: { type: string }
+        siteId: { type: ["string", "null"] }
+        siteName: { type: ["string", "null"] }
+        month: { type: string }
+        presentDays: { type: number }
+        totalWorkingDays: { type: number }
+        lwpDays: { type: number }
+        otHours: { type: number }
+        status: { type: string, enum: [draft, validated, approved, locked] }
+        exceptions:
+          type: array
+          items: { type: string }
+
+    AttendanceRecordUpdate:
+      type: object
+      properties:
+        presentDays: { type: number }
+        lwpDays: { type: number }
+        otHours: { type: number }
+        remarks: { type: string }
+
+    AttendanceException:
+      type: object
+      required: [id, workerId, workerName, month, type, description]
+      properties:
+        id: { type: string }
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        month: { type: string }
+        type: { type: string }
+        description: { type: string }
+        severity: { type: string, enum: [warning, error] }
+
+    AttendanceApprovalInput:
+      type: object
+      required: [month, clientId]
+      properties:
+        month: { type: string }
+        clientId: { type: string }
+        siteId: { type: string }
+        remarks: { type: string }
+
+    AttendanceLock:
+      type: object
+      required: [id, month, clientId, clientName, status, lockedAt]
+      properties:
+        id: { type: string }
+        month: { type: string }
+        clientId: { type: string }
+        clientName: { type: string }
+        siteId: { type: ["string", "null"] }
+        siteName: { type: ["string", "null"] }
+        status: { type: string, enum: [approved, locked] }
+        lockedBy: { type: string }
+        lockedAt: { type: string }
+        remarks: { type: ["string", "null"] }
+
+    # ── PAYROLL ───────────────────────────────────────────────────────
+    PayrollBatch:
+      type: object
+      required: [id, name, month, status, totalWorkers, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        month: { type: string }
+        clientId: { type: ["string", "null"] }
+        clientName: { type: ["string", "null"] }
+        legalEntityId: { type: ["string", "null"] }
+        status: { type: string, enum: [draft, calculating, calculated, exceptions, approved, locked] }
+        totalWorkers: { type: integer }
+        processedWorkers: { type: integer }
+        exceptionCount: { type: integer }
+        criticalExceptionCount: { type: integer }
+        # Money fields are Drizzle numeric columns serialized as decimal strings
+        totalGross: { type: ["string", "null"] }
+        totalNet: { type: ["string", "null"] }
+        totalDeductions: { type: ["string", "null"] }
+        totalPfEmployee: { type: ["string", "null"] }
+        totalPfEmployer: { type: ["string", "null"] }
+        totalEsi: { type: ["string", "null"] }
+        totalPt: { type: ["string", "null"] }
+        totalLwf: { type: ["string", "null"] }
+        totalEmployerCost: { type: ["string", "null"] }
+        submittedAt: { type: ["string", "null"] }
+        submittedBy: { type: ["string", "null"] }
+        approvedAt: { type: ["string", "null"] }
+        approvedBy: { type: ["string", "null"] }
+        lockedAt: { type: ["string", "null"] }
+        lockedBy: { type: ["string", "null"] }
+        remarks: { type: ["string", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: ["string", "null"] }
+
+    PayrollBatchInput:
+      type: object
+      required: [name, month]
+      properties:
+        name: { type: string }
+        month: { type: string }
+        clientId: { type: string }
+        legalEntityId: { type: string }
+
+    PayrollRecord:
+      type: object
+      required: [id, batchId, workerId, workerName, grossPay, netPay, status]
+      properties:
+        id: { type: string }
+        batchId: { type: string }
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        clientName: { type: ["string", "null"] }
+        siteName: { type: ["string", "null"] }
+        presentDays: { type: number }
+        lwpDays: { type: number }
+        grossPay: { type: number }
+        netPay: { type: number }
+        pfEmployee: { type: number }
+        pfEmployer: { type: number }
+        esi: { type: number }
+        pt: { type: number }
+        lwf: { type: number }
+        otherDeductions: { type: number }
+        status: { type: string, enum: [calculated, exception, approved] }
+        hasException: { type: boolean }
+
+    PayrollException:
+      type: object
+      required: [id, batchId, workerId, workerName, type, description, status]
+      properties:
+        id: { type: string }
+        batchId: { type: string }
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        type: { type: string }
+        description: { type: string }
+        severity: { type: string, enum: [warning, error] }
+        status: { type: string, enum: [open, resolved, waived] }
+        resolution: { type: ["string", "null"] }
+
+    PayrollExceptionResolution:
+      type: object
+      required: [exceptionId, resolution]
+      properties:
+        exceptionId: { type: string }
+        resolution: { type: string, enum: [resolved, waived] }
+        remarks: { type: string }
+
+    PayrollApprovalInput:
+      type: object
+      required: [remarks]
+      properties:
+        remarks: { type: string }
+        level: { type: string }
+
+    PayrollReopenInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string }
+
+    PayrollTrace:
+      type: object
+      required: [recordId, workerId, steps]
+      properties:
+        recordId: { type: string }
+        workerId: { type: string }
+        workerName: { type: string }
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              head: { type: string }
+              formula: { type: string }
+              value: { type: number }
+              note: { type: ["string", "null"] }
+
+    # ── BANK FILE ─────────────────────────────────────────────────────
+    BankFile:
+      type: object
+      required: [id, batchId, bankName, format, workerCount, totalAmount, status, createdAt]
+      properties:
+        id: { type: string }
+        batchId: { type: string }
+        bankName: { type: string }
+        format: { type: string }
+        workerCount: { type: integer }
+        totalAmount: { type: number }
+        status: { type: string, enum: [generated, downloaded] }
+        fileUrl: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    BankFileInput:
+      type: object
+      required: [batchId, bankName, format]
+      properties:
+        batchId: { type: string }
+        bankName: { type: string }
+        format: { type: string }
+
+    # ── PAYSLIP ───────────────────────────────────────────────────────
+    Payslip:
+      type: object
+      required: [id, workerId, workerName, month, grossPay, netPay, status]
+      properties:
+        id: { type: string }
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        month: { type: string }
+        batchId: { type: string }
+        grossPay: { type: number }
+        netPay: { type: number }
+        status: { type: string, enum: [generated, sent] }
+        fileUrl: { type: ["string", "null"] }
+        earnings:
+          type: array
+          items:
+            type: object
+            properties:
+              head: { type: string }
+              amount: { type: number }
+        deductions:
+          type: array
+          items:
+            type: object
+            properties:
+              head: { type: string }
+              amount: { type: number }
+
+    PayslipGenerationInput:
+      type: object
+      required: [batchId]
+      properties:
+        batchId: { type: string }
+        workerIds:
+          type: array
+          items: { type: string }
+
+    PayslipGenerationResult:
+      type: object
+      required: [total, generated, failed]
+      properties:
+        total: { type: integer }
+        generated: { type: integer }
+        failed: { type: integer }
+        jobId: { type: ["string", "null"] }
+
+    # ── COMPLIANCE ────────────────────────────────────────────────────
+    ComplianceReport:
+      type: object
+      required: [month, reportType, rows, totals]
+      properties:
+        month: { type: string }
+        reportType: { type: string }
+        entityName: { type: ["string", "null"] }
+        rows:
+          type: array
+          items:
+            type: object
+        totals: { type: object }
+
+    MinWageException:
+      type: object
+      required: [workerId, workerName, state, minimumWage, actualWage]
+      properties:
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        state: { type: string }
+        zone: { type: ["string", "null"] }
+        category: { type: string }
+        minimumWage: { type: number }
+        actualWage: { type: number }
+        difference: { type: number }
+
+    MissingStatutoryRecord:
+      type: object
+      required: [workerId, employeeCode, workerName, missingPf, missingEsi]
+      properties:
+        workerId: { type: string }
+        employeeCode: { type: string }
+        workerName: { type: string }
+        clientName: { type: ["string", "null"] }
+        dateOfJoining: { type: ["string", "null"] }
+        missingPf: { type: boolean }
+        missingEsi: { type: boolean }
+
+    ComplianceRule:
+      type: object
+      required: [id, state, type, name, configJson, effectiveFrom, isPlaceholder]
+      properties:
+        id: { type: string }
+        tenantId: { type: string }
+        legalEntityId: { type: ["string", "null"] }
+        state: { type: string }
+        type: { type: string, enum: [pt, lwf, min_wage] }
+        name: { type: string }
+        # JSON-encoded config. Shape depends on `type`:
+        # pt → PtRuleConfig, lwf → LwfRuleConfig, min_wage → MinWageRuleConfig
+        configJson: { type: string }
+        effectiveFrom: { type: string }
+        effectiveTo: { type: ["string", "null"] }
+        # Stored as "true"/"false" strings; "false" means SME-confirmed.
+        isPlaceholder: { type: string, enum: ["true", "false"] }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: ["string", "null"] }
+        updatedAt: { type: ["string", "null"] }
+
+    PtSlab:
+      type: object
+      required: [upTo, amount]
+      properties:
+        # null = unbounded top slab
+        upTo: { type: ["number", "null"] }
+        amount: { type: number }
+        # Optional February-only amount (e.g. Maharashtra ₹300)
+        februaryAmount: { type: number }
+
+    PtRuleConfig:
+      type: object
+      required: [slabs]
+      properties:
+        slabs:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PtSlab"
+
+    LwfRuleConfig:
+      type: object
+      required: [amount]
+      properties:
+        amount: { type: number }
+
+    MinWageRuleConfig:
+      type: object
+      required: [minDailyWage]
+      properties:
+        minDailyWage: { type: number }
+        # Optional zone-label → daily-rate map (e.g. Karnataka Zone 1/2/3).
+        # Matched against a site's zone tag; unmatched zones fall back to minDailyWage.
+        zoneRates:
+          type: object
+          additionalProperties: { type: number }
+
+    ComplianceRuleInput:
+      type: object
+      required: [state, type, name, effectiveFrom, configJson]
+      properties:
+        state: { type: string, minLength: 1 }
+        type: { type: string, enum: [pt, lwf, min_wage] }
+        name: { type: string, minLength: 1 }
+        effectiveFrom: { type: string, minLength: 1 }
+        notes: { type: string }
+        legalEntityId: { type: string }
+        configJson:
+          oneOf:
+            - $ref: "#/components/schemas/PtRuleConfig"
+            - $ref: "#/components/schemas/LwfRuleConfig"
+            - $ref: "#/components/schemas/MinWageRuleConfig"
+
+    # ── BILLING ───────────────────────────────────────────────────────
+    BillingRule:
+      type: object
+      required: [id, clientId, clientName, name, ruleType, effectiveFrom]
+      properties:
+        id: { type: string }
+        clientId: { type: string }
+        clientName: { type: string }
+        name: { type: string }
+        ruleType: { type: string, enum: [markup_percentage, fixed_per_worker, ctc_multiplier] }
+        value: { type: number }
+        components:
+          type: array
+          items: { type: string }
+        effectiveFrom: { type: string }
+        effectiveTo: { type: ["string", "null"] }
+
+    BillingRuleInput:
+      type: object
+      required: [clientId, name, ruleType, value, effectiveFrom]
+      properties:
+        clientId: { type: string }
+        name: { type: string }
+        ruleType: { type: string }
+        value: { type: number }
+        components:
+          type: array
+          items: { type: string }
+        effectiveFrom: { type: string }
+        effectiveTo: { type: string }
+
+    BillingRuleUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        value: { type: number }
+        effectiveTo: { type: string }
+
+    Invoice:
+      type: object
+      required: [id, clientId, month, status, totalAmount, createdAt]
+      properties:
+        id: { type: string }
+        invoiceNumber: { type: string }
+        clientId: { type: string }
+        clientName: { type: ["string", "null"] }
+        month: { type: string }
+        batchId: { type: ["string", "null"] }
+        status: { type: string, enum: [draft, approved, paid, cancelled] }
+        workerCount: { type: integer }
+        grossPayTotal: { type: string }
+        serviceFeeTotal: { type: string }
+        subtotal: { type: string }
+        gstRate: { type: string }
+        gst: { type: string }
+        totalAmount: { type: string }
+        notes: { type: ["string", "null"] }
+        createdAt: { type: string }
+        dueDate: { type: ["string", "null"] }
+        approvedAt: { type: ["string", "null"] }
+        approvedBy: { type: ["string", "null"] }
+
+    InvoiceInput:
+      type: object
+      required: [clientId, month, batchId]
+      properties:
+        clientId: { type: string }
+        month: { type: string }
+        batchId: { type: string }
+        gstPercent: { type: number }
+        dueDate: { type: string }
+
+    InvoiceAnnexure:
+      type: object
+      required: [invoice, lineItems, reconciliation]
+      properties:
+        invoice:
+          type: object
+          properties:
+            id: { type: string }
+            invoiceNumber: { type: string }
+            clientId: { type: string }
+            month: { type: string }
+            status: { type: string }
+            totalAmount: { type: string }
+            subtotal: { type: string }
+            gst: { type: string }
+            clientName: { type: string, nullable: true }
+        lineItems:
+          type: array
+          items:
+            type: object
+            properties:
+              workerId: { type: string }
+              workerName: { type: string }
+              employeeCode: { type: string, nullable: true }
+              siteName: { type: string, nullable: true }
+              presentDays: { type: string, nullable: true }
+              grossPay: { type: string }
+              serviceFee: { type: string }
+              totalBeforeGst: { type: string }
+              gst: { type: string }
+              totalAmount: { type: string }
+        reconciliation:
+          type: object
+          properties:
+            computedTotal: { type: number }
+            invoiceTotal: { type: number }
+            reconciled: { type: boolean }
+            variance: { type: number }
+
+    InvoiceDraftPreview:
+      type: object
+      required: [internalPreview, invoice, lineItems, reconciliation]
+      properties:
+        internalPreview: { type: boolean }
+        invoice:
+          type: object
+          properties:
+            id: { type: string }
+            invoiceNumber: { type: string }
+            clientId: { type: string }
+            month: { type: string }
+            status: { type: string }
+            totalAmount: { type: string }
+            subtotal: { type: string }
+            gst: { type: string }
+            clientName: { type: string, nullable: true }
+        lineItems:
+          type: array
+          items:
+            type: object
+            properties:
+              workerId: { type: string }
+              workerName: { type: string }
+              employeeCode: { type: string, nullable: true }
+              siteName: { type: string, nullable: true }
+              presentDays: { type: string, nullable: true }
+              grossPay: { type: string }
+              serviceFee: { type: string }
+              totalBeforeGst: { type: string }
+              gst: { type: string }
+              totalAmount: { type: string }
+        reconciliation:
+          type: object
+          properties:
+            computedTotal: { type: number }
+            invoiceTotal: { type: number }
+            reconciled: { type: boolean }
+            variance: { type: number }
+
+    # ── REPORTS ───────────────────────────────────────────────────────
+    ReportMeta:
+      type: object
+      required: [id, name, category, description]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        category: { type: string }
+        description: { type: string }
+        filters:
+          type: array
+          items: { type: string }
+
+    PayrollSummaryReport:
+      type: object
+      required: [month, totalWorkers, totalGross, totalNet, totalDeductions]
+      properties:
+        month: { type: string }
+        totalWorkers: { type: integer }
+        totalGross: { type: number }
+        totalNet: { type: number }
+        totalDeductions: { type: number }
+        byClient:
+          type: array
+          items:
+            type: object
+            properties:
+              clientName: { type: string }
+              workers: { type: integer }
+              gross: { type: number }
+              net: { type: number }
+        byState:
+          type: array
+          items:
+            type: object
+            properties:
+              state: { type: string }
+              workers: { type: integer }
+              gross: { type: number }
+
+    WorkerPayrollRow:
+      type: object
+      required: [workerId, workerName, grossPay, netPay]
+      properties:
+        workerId: { type: string }
+        workerName: { type: string }
+        employeeCode: { type: string }
+        clientName: { type: ["string", "null"] }
+        siteName: { type: ["string", "null"] }
+        presentDays: { type: number }
+        grossPay: { type: number }
+        netPay: { type: number }
+        pfEmployee: { type: number }
+        pfEmployer: { type: number }
+        esi: { type: number }
+        pt: { type: number }
+        lwf: { type: number }
+
+    DownloadItem:
+      type: object
+      required: [id, name, type, status, createdAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        status: { type: string, enum: [pending, ready, failed] }
+        fileUrl: { type: ["string", "null"] }
+        createdAt: { type: string }
+
+    # ── DASHBOARDS ────────────────────────────────────────────────────
+    ExecutiveDashboard:
+      type: object
+      required: [totalWorkers, totalClients, totalSites, currentMonthPayroll, pendingActions]
+      properties:
+        totalWorkers: { type: integer }
+        activeWorkers: { type: integer }
+        totalClients: { type: integer }
+        totalSites: { type: integer }
+        currentMonthPayroll: { type: number }
+        previousMonthPayroll: { type: number }
+        pendingActions:
+          type: array
+          items:
+            type: object
+            properties:
+              type: { type: string }
+              label: { type: string }
+              count: { type: integer }
+              severity: { type: string }
+        workersByClient:
+          type: array
+          items:
+            type: object
+            properties:
+              clientName: { type: string }
+              count: { type: integer }
+        recentActivity:
+          type: array
+          items:
+            type: object
+            properties:
+              action: { type: string }
+              module: { type: string }
+              user: { type: string }
+              timestamp: { type: string }
+
+    PayrollDashboard:
+      type: object
+      required: [month, batches, totalWorkers, totalGross, totalNet]
+      properties:
+        month: { type: string }
+        batches:
+          type: array
+          items:
+            type: object
+            properties:
+              batchName: { type: string }
+              status: { type: string }
+              workers: { type: integer }
+              gross: { type: number }
+        totalWorkers: { type: integer }
+        totalGross: { type: number }
+        totalNet: { type: number }
+        exceptionCount: { type: integer }
+        monthlyTrend:
+          type: array
+          items:
+            type: object
+            properties:
+              month: { type: string }
+              gross: { type: number }
+              net: { type: number }
+
+    ComplianceDashboard:
+      type: object
+      required: [totalWorkers, pfEnrolled, esiEnrolled, minWageViolations, minWageBatchId, pfPending, esiPending, pfPendingBatches, esiPendingBatches, pfCoverage, esiCoverage, disclaimer]
+      properties:
+        totalWorkers: { type: integer }
+        pfEnrolled: { type: integer }
+        esiEnrolled: { type: integer }
+        minWageViolations: { type: integer }
+        minWageBatchId: { type: string, nullable: true }
+        pfPending: { type: integer }
+        esiPending: { type: integer }
+        pfPendingBatches:
+          type: array
+          items:
+            $ref: "#/components/schemas/PendingFilingBatch"
+        esiPendingBatches:
+          type: array
+          items:
+            $ref: "#/components/schemas/PendingFilingBatch"
+        pfCoverage: { type: number }
+        esiCoverage: { type: number }
+        disclaimer: { type: string }
+
+    PendingFilingBatch:
+      type: object
+      required: [batchId, name, month, lockedAt, daysSinceLock]
+      properties:
+        batchId: { type: string }
+        name: { type: string }
+        month: { type: string }
+        lockedAt: { type: string, nullable: true }
+        daysSinceLock: { type: integer, nullable: true }
+
+    FinanceDashboard:
+      type: object
+      required: [month, totalInvoiced, totalPayouts, pendingInvoices]
+      properties:
+        month: { type: string }
+        totalInvoiced: { type: number }
+        totalPayouts: { type: number }
+        pendingInvoices: { type: integer }
+        byClient:
+          type: array
+          items:
+            type: object
+            properties:
+              clientName: { type: string }
+              invoiced: { type: number }
+              payout: { type: number }
+
+    # ── AUDIT / EXPORT LOGS ───────────────────────────────────────────
+    AuditLog:
+      type: object
+      required: [id, module, action, entityId, userId, userName, createdAt]
+      properties:
+        id: { type: string }
+        module: { type: string }
+        action: { type: string }
+        entityId: { type: string }
+        entityType: { type: string }
+        userId: { type: string }
+        userName: { type: string }
+        ipAddress: { type: ["string", "null"] }
+        changes: { type: object }
+        createdAt: { type: string }
+
+    ExportLog:
+      type: object
+      required: [id, module, exportType, userId, userName, createdAt]
+      properties:
+        id: { type: string }
+        module: { type: string }
+        exportType: { type: string }
+        filters: { type: object }
+        rowCount: { type: ["integer", "null"] }
+        fileUrl: { type: ["string", "null"] }
+        userId: { type: string }
+        userName: { type: string }
+        createdAt: { type: string }
+
+    # ── SYSTEM JOBS ───────────────────────────────────────────────────
+    SystemJob:
+      type: object
+      required: [id, type, status, createdAt]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        status: { type: string, enum: [pending, running, completed, failed] }
+        progress: { type: ["integer", "null"] }
+        total: { type: ["integer", "null"] }
+        result: { type: object }
+        error: { type: ["string", "null"] }
+        createdAt: { type: string }
+        startedAt: { type: ["string", "null"] }
+        completedAt: { type: ["string", "null"] }
